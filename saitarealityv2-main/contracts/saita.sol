@@ -173,8 +173,6 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
       uint256 tBurn;
       uint256 tLiquidity;
     }
-
-    // valuesFromGetValues public values;
     
     struct splitETHStruct{
         uint256 treasury;
@@ -191,12 +189,16 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
     ETHAmountStruct public ETHAmount;
 
     event FeesChanged();
-    event UpdatedRouter(address oldRouter, address newRouter);
 
     modifier lockTheSwap {
         swapping = true;
         _;
         swapping = false;
+    }
+
+    modifier addressValidation(address _addr) {
+        require(_addr != address(0), 'SaitaRealty: Zero address');
+        _;
     }
 
     constructor (address routerAddress) {
@@ -217,7 +219,6 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
         _isExcludedFromFee[treasuryAddress] = true;
         _isExcludedFromFee[burnAddress] = true;
         _isExcludedFromFee[marketingAddress] = true;
-        // _isExcludedFromFee[lpRecipient] = true;
 
         emit Transfer(address(0), owner(), _tTotal);
     }
@@ -290,6 +291,7 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
 
     function excludeFromReward(address account) public onlyOwner() {
         require(!_isExcluded[account], "Account is already excluded");
+        require(_excluded.length <= 200, "Invalid length");
         if(_rOwned[account] > 0) {
             _tOwned[account] = tokenFromReflection(_rOwned[account]);
         }
@@ -351,14 +353,6 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
         emit FeesChanged();
     }
 
-    function setAddress(address tA,address mA, address bA, address us) public {
-        treasuryAddress = tA;
-        marketingAddress = mA;
-        burnAddress = bA;
-        USDT = us;
-    }
-
-
     function _reflectRfi(uint256 rRfi, uint256 tRfi) private {
         _rTotal -=rRfi;
         totFeesPaid.rfi += tRfi;
@@ -382,7 +376,7 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
         _rOwned[marketingAddress] += rMarketing;
     }
 
-    function _takeBurn(uint256 rBurn, uint256 tBurn) private{
+    function _takeBurn(uint256 rBurn, uint256 tBurn) private {
         totFeesPaid.burn += tBurn;
         if(_isExcluded[marketingAddress])_tOwned[burnAddress] += tBurn;
         _rOwned[burnAddress] += rBurn;
@@ -571,22 +565,27 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
         ETHAmount.marketing = 0;
     }
 
-    function updateTreasuryWallet(address newWallet) external onlyOwner{
-        require(treasuryAddress != newWallet ,'Wallet already set');
+    function updateTreasuryWallet(address newWallet) external onlyOwner addressValidation(newWallet) {
+        require(treasuryAddress != newWallet, 'SaitaRealty: Wallet already set');
         treasuryAddress = newWallet;
         _isExcludedFromFee[treasuryAddress];
     }
 
-    function updateBurnWallet(address newWallet) external onlyOwner{
-        require(burnAddress != newWallet ,'Wallet already set');
+    function updateBurnWallet(address newWallet) external onlyOwner addressValidation(newWallet) {
+        require(burnAddress != newWallet, 'SaitaRealty: Wallet already set');
         burnAddress = newWallet;
         _isExcludedFromFee[burnAddress];
     }
 
-    function updateMarketingWallet(address newWallet) external onlyOwner{
-        require(marketingAddress != newWallet ,'Wallet already set');
+    function updateMarketingWallet(address newWallet) external onlyOwner addressValidation(newWallet) {
+        require(marketingAddress != newWallet, 'SaitaRealty: Wallet already set');
         marketingAddress = newWallet;
         _isExcludedFromFee[marketingAddress];
+    }
+
+    function updateStableCoin(address _usdt) external onlyOwner  addressValidation(_usdt) {
+        require(USDT != _usdt, 'SaitaRealty: Wallet already set');
+        USDT = _usdt;
     }
 
     function updateMaxTxAmt(uint256 amount) external onlyOwner {
@@ -605,11 +604,12 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
     }
 
     function setAntibot(address account, bool state) external onlyOwner{
-        require(_isBot[account] != state, 'Value already set');
+        require(_isBot[account] != state, 'SaitaRealty: Value already set');
         _isBot[account] = state;
     }
     
-    function bulkAntiBot(address[] memory accounts, bool state) external onlyOwner{
+    function bulkAntiBot(address[] memory accounts, bool state) external onlyOwner {
+        require(accounts.length <= 100, "SaitaRealty: Invalid");
         for(uint256 i = 0; i < accounts.length; i++){
             _isBot[accounts[i]] = state;
         }
@@ -626,10 +626,10 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
     }
     
     function airdropTokens(address[] memory recipients, uint256[] memory amounts) external onlyOwner {
-         require(recipients.length == amounts.length,"Invalid size");
+         require(recipients.length == amounts.length, "Invalid size");
          address sender = msg.sender;
 
-         for(uint256 i; i<recipients.length; i++){
+         for(uint256 i; i < recipients.length; i++){
             address recipient = recipients[i];
             uint256 rAmount = amounts[i]*_getRate();
             _rOwned[sender] = _rOwned[sender]- rAmount;
