@@ -120,18 +120,18 @@ contract SaitaRealtyV2 is IERC20, Ownable {
 
     
     uint256 public swapTokensAtAmount = 1_000 * 10 ** 6;
-    uint256 public maxTxAmount = 5_000_000_000_000 * 10**_decimals;
+    uint256 public maxTxAmount = 50_000_000_000 * 10**_decimals;
     
     // Anti Dump //
     mapping (address => uint256) public _lastTrade;
     bool public coolDownEnabled = true;
     uint256 public coolDownTime = 30 seconds;
 
-    address public treasuryAddress; //= 0x7f0Ac568E9B8fC2BeCfE7f6e8A3F070f2D05Baaf;
-    address public marketingAddress; //= 0xbb6Bbe5fD38F856C34361f75bfE5616908C67bc7;
-    address public burnAddress; //= 0x000000000000000000000000000000000000dEaD
+    address public treasuryAddress = 0x0B70373D5BA5b0Da8672fF62704bFD117211C2C2;
+    address public marketingAddress = 0xffa6BB6D59810Fd99555556202E76B85C1C7AcD6;
+    address public burnAddress = 0xd1027f60fA49152C439599Df5BD6B57D0A744ac5;
 
-    address public USDT; //= 0xB6dadf218e9a7EcF71DA05CA18A23A6a842AE45F;
+    address public USDT = 0xdd91623DFe09907DeAbF1197FB4eCd54478A8bC6;
 
     string private constant _name = "SaitaRealtyV2";
     string private constant _symbol = "SRLTY";
@@ -536,8 +536,9 @@ contract SaitaRealtyV2 is IERC20, Ownable {
         }
         
         emit Transfer(sender, recipient, s.tTransferAmount);
+        if(s.tLiquidity > 0){
         emit Transfer(sender, address(this), s.tLiquidity);
-        
+        }
     }
 
     function swapTokensForETH(uint256 tokenAmount) private lockTheSwap {

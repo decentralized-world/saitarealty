@@ -67,13 +67,14 @@ describe("Testing", function () {
         console.log("treasury add",await saita.treasuryAddress());
     })
 
-    it("Transfer Tokens", async() => {
+    it.only("Transfer Tokens", async() => {
         console.log("BAlance of owner before Transfer: ", await saita.balanceOf(owner.address));
         console.log("Balance of account 1 before Transfer ", await saita.balanceOf(signers[1].address));
         await saita.allowance(owner.address,signers[1].address);
         await saita.approve(signers[1].address, expandTo9Decimals(1200000000))
-        await saita.connect(owner).transfer(signers[1].address, expandTo9Decimals(100));
-        console.log("BAlance of owner after Transfer: ", await saita.balanceOf(owner.address));
+        // await saita.connect(owner).transfer(signers[1].address, expandTo9Decimals(100));
+        await expect (await saita.connect(owner).transfer(signers[1].address, expandTo9Decimals(100))).to.emit(saita, 'Transfer').withArgs(owner.address,signers[1].address,expandTo9Decimals(100)) ;      
+         console.log("BAlance of owner after Transfer: ", await saita.balanceOf(owner.address));
         console.log("Balance of account 1 after Transfer ", await saita.balanceOf(signers[1].address));
     })
     

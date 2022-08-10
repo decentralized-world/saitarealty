@@ -23,7 +23,7 @@ async function main() {
    @dev const for deployed addresses
    */
   const testnet = {
-    saita : "0x2988E201a01E49a0995f85Ea6E2578F9Fece9A61",
+    saita : "0xFc30fA4e1dB6B85f52e0182F879f395B07c5C7A9",
     // weth : "0xce6286746CBf9C2c3B3A9FdA37F3b86906c05794",
     // router : "0xA76f69fc3340c2b5772Ae894955Ac4C11Cd5B17F",
     // factory : "0x0E69Ac1682d0c32CdC9175352BD500Ef7C7BBfec",
@@ -38,7 +38,7 @@ async function main() {
   
 
 
-//   let saita = await Saita.deploy(router);
+  // let saita = await Saita.deploy(router);
   let saita = await Saita.attach(testnet.saita);
   console.log("Saita",saita.address);
 
