@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: NOLICENSE
 pragma solidity ^0.8.10;
 
-
 interface IERC20 {
     function totalSupply() external view returns (uint256);
 
@@ -96,7 +95,7 @@ interface IRouter {
 
 }
 
-contract SaitaRealtyV2 is Context, IERC20, Ownable {
+contract SaitaRealtyV2 is IERC20, Ownable {
 
     mapping(address => uint256) private _rOwned;
     mapping(address => uint256) private _tOwned;
@@ -292,6 +291,7 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
     function excludeFromReward(address account) public onlyOwner() {
         require(!_isExcluded[account], "Account is already excluded");
         require(_excluded.length <= 200, "Invalid length");
+        require(account != owner(), "Owner cannot be excluded");
         if(_rOwned[account] > 0) {
             _tOwned[account] = tokenFromReflection(_rOwned[account]);
         }
@@ -626,17 +626,18 @@ contract SaitaRealtyV2 is Context, IERC20, Ownable {
     }
     
     function airdropTokens(address[] memory recipients, uint256[] memory amounts) external onlyOwner {
-         require(recipients.length == amounts.length, "Invalid size");
+        require(recipients.length == amounts.length,"Invalid size");
          address sender = msg.sender;
 
-         for(uint256 i; i < recipients.length; i++){
+         for(uint256 i; i<recipients.length; i++){
             address recipient = recipients[i];
             uint256 rAmount = amounts[i]*_getRate();
             _rOwned[sender] = _rOwned[sender]- rAmount;
             _rOwned[recipient] = _rOwned[recipient] + rAmount;
             emit Transfer(sender, recipient, amounts[i]);
          }
-    }
+
+        }
 
     //Use this in case ETH are sent to the contract by mistake
     function rescueETH(uint256 weiAmount) external onlyOwner{

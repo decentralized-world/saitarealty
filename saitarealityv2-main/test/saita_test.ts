@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { time } from "console";
 import { mineBlocks, expandTo9Decimals, expandTo18Decimals } from "./utilities/utilities";
-import { CalHash, CalHash__factory, IFactory, IFactory__factory, IRouter, IRouter__factory, SaitaRealtyV2, SaitaRealtyV2__factory, UniswapV2Factory, UniswapV2Factory__factory, UniswapV2Pair, UniswapV2Pair__factory, UniswapV2Router02, UniswapV2Router02__factory, USDT, USDT__factory, WETH9, WETH9__factory } from "../typechain-types";
+import { CalHash, CalHash__factory, IFactory, IFactory__factory, IRouter, IRouter__factory, SaitaRealtyV2, SaitaRealtyV2__factory, UniswapV2Factory, UniswapV2Factory__factory, UniswapV2Pair, UniswapV2Pair__factory, UniswapV2Router02, UniswapV2Router02__factory, USDT, USDT__factory, WETH9, WETH9__factory } from "../typechain";
 import { string } from "hardhat/internal/core/params/argumentTypes";
 // import { SaitaRealtyV2 } from "../typechain-types/SaitaRealtyV2";
 // import { IFactory } from "../typechain-types/IFactory";
@@ -35,20 +35,25 @@ describe("Testing", function () {
         pair = await new UniswapV2Pair__factory(owner).deploy();
         saita = await new SaitaRealtyV2__factory(owner).deploy(router.address);
         usdt = await new USDT__factory(owner).deploy(owner.address);
-        await saita.setAddress(
-            signers[5].address,//treasury
-            signers[6].address,//marketing
-            signers[7].address,//burn
-            signers[8].address,
-            usdt.address,
-            )
+        // await saita.setAddress(
+        //     signers[5].address,//treasury
+        //     signers[6].address,//marketing
+        //     signers[7].address,//burn
+        //     signers[8].address,
+        //     usdt.address,
+        //     )
+        await saita.connect(owner).updateTreasuryWallet(signers[5].address);
+        await saita.connect(owner).updateMarketingWallet(signers[6].address);
+        await saita.connect(owner).updateBurnWallet(signers[6].address);
+        await saita.connect(owner).updateStableCoin(usdt.address);
         await saita.connect(owner).setTaxes(10,10,10,10,50);
         await saita.approve(router.address, expandTo18Decimals(1000))
         await router.connect(owner).addLiquidityETH(saita.address,expandTo18Decimals(100),1,1,owner.address,1759004587,{value: expandTo18Decimals(10)});
         console.log(String(await router.connect(owner).getAmountsOut("500000000",[saita.address,Weth.address])));
         await usdt.approve(router.address, expandTo18Decimals(1200))
         await router.connect(owner).addLiquidityETH(usdt.address,expandTo18Decimals(1000),1,1,owner.address,1759004587,{value: expandTo18Decimals(10)});
-
+        console.log("After before");
+        await saita.connect(owner).updateCoolDownSettings(false,0);
     })
 
     it("Getter Functions", async() => {
@@ -281,5 +286,25 @@ describe("Testing", function () {
         console.log("SR Address after: ",await saita.balanceOf(saita.address));
 
     
+    })
+
+    it("Airdrop Check ",async() => {
+      // await saita.connect(owner).excludeFromReward(owner.address);
+      await saita.connect(owner).transfer(signers[11].address, expandTo9Decimals(100));
+      await saita.connect(owner).transfer(signers[12].address, expandTo9Decimals(100));
+      await saita.connect(owner).transfer(signers[13].address, expandTo9Decimals(100));
+      console.log("BAlances 11: ",await saita.balanceOf(signers[11].address));
+      console.log("BAlances 12: ",await saita.balanceOf(signers[12].address));
+      console.log("BAlances 13: ",await saita.balanceOf(signers[13].address));
+
+
+
+      await saita.connect(owner).airdropTokens([signers[11].address,signers[12].address,signers[14].address],[expandTo9Decimals(500),expandTo9Decimals(500),500*10**9]);
+      console.log("BAlances 11: ",await saita.balanceOf(signers[11].address));
+      console.log("BAlances 12: ",await saita.balanceOf(signers[12].address));
+      console.log("BAlances 14: ",await saita.balanceOf(signers[14].address));
+
+      console.log("BAlances 13: ",await saita.balanceOf(signers[13].address));
+
     })
 });
