@@ -61,7 +61,7 @@ abstract contract Ownable is Context {
         _setOwner(newOwner);
     }
 
-    function _setOwner(address newOwner) private {
+    function _setOwner(address newOwner) internal {
         address oldOwner = _owner;
         _owner = newOwner;
         emit OwnershipTransferred(oldOwner, newOwner);
@@ -200,7 +200,7 @@ contract SaitaRealtyV2 is IERC20, Ownable {
         _;
     }
 
-    constructor (address routerAddress) {
+    constructor (address routerAddress, address owner_) {
         IRouter _router = IRouter(routerAddress);
         address _pair = IFactory(_router.factory())
             .createPair(address(this), _router.WETH());
@@ -211,6 +211,8 @@ contract SaitaRealtyV2 is IERC20, Ownable {
         addPair(pair);
     
         excludeFromReward(pair);
+
+        _setOwner(owner_);
 
         _rOwned[owner()] = _rTotal;
         _isExcludedFromFee[owner()] = true;
@@ -288,7 +290,7 @@ contract SaitaRealtyV2 is IERC20, Ownable {
         return rAmount/currentRate;
     }
 
-    function excludeFromReward(address account) public onlyOwner() {
+    function excludeFromReward(address account) public onlyOwner {
         require(!_isExcluded[account], "Account is already excluded");
         require(_excluded.length <= 200, "Invalid length");
         require(account != owner(), "Owner cannot be excluded");
