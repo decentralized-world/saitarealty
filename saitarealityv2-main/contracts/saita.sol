@@ -95,7 +95,7 @@ interface IRouter {
 
 }
 
-contract SaitaRealtyV2 is IERC20, Ownable {
+contract SaitaRealty is IERC20, Ownable {
 
     mapping(address => uint256) private _rOwned;
     mapping(address => uint256) private _tOwned;
